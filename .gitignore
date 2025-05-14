@@ -35,8 +35,11 @@
 *.pdb
 
 # Zig cache directory
-zig-cache/
-zig-out/
+**/.zig-cache/
+**/.zig-out/
+.zig-cache/
+.zig-out/
+dist/
 
 # Build manifests
 build.zig.zon

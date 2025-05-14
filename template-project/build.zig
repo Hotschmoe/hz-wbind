@@ -25,8 +25,14 @@ pub fn build(b: *std.Build) void {
         .target = b.resolveTargetQuery(wasm_target),
         .optimize = optimize,
     });
-    exe.addModule("zig-webaudio-direct", b.dependency("zig-webaudio-direct", .{}).module("zig-webaudio-direct"));
-    exe.strip = true;
+
+    // Add zig-webaudio-direct module
+    const webaudio_dep = b.dependency("zig-webaudio-direct", .{
+        .target = b.resolveTargetQuery(wasm_target),
+        .optimize = optimize,
+    });
+    const webaudio_module = webaudio_dep.module("zig-webaudio-direct");
+    exe.root_module.addImport("zig-webaudio-direct", webaudio_module);
 
     // Important WASM-specific settings (from borrowed_build.zig)
     exe.rdynamic = true;
@@ -42,21 +48,13 @@ pub fn build(b: *std.Build) void {
     // This step itself doesn't depend on others; other steps will depend on it.
 
     // Copy the compiled WASM from zig-out/bin/app.wasm to dist/app.wasm
-    const copy_wasm = b.addInstallFile(.{
-        .source = exe.getEmittedBin(),
-        .dest_dir = .{ .custom = "dist" },
-        .dest_sub_path = "app.wasm",
-    });
-    copy_wasm.step.dependOn(b.getInstallStep());
-    copy_wasm.step.dependOn(&make_dist.step);
+    const copy_wasm = b.addInstallFile(exe.getEmittedBin(), "dist/app.wasm");
+    copy_wasm.step.dependOn(b.getInstallStep()); // Ensures app.wasm is built by installArtifact
+    copy_wasm.step.dependOn(&make_dist.step); // Ensures dist directory exists
 
     // Copy webaudio.js from dependency to dist/webaudio.js (kept from original build.zig logic)
     const webaudio_js_source = b.dependency("zig-webaudio-direct", .{}).path("js/webaudio.js");
-    const install_webaudio_js = b.addInstallFile(.{
-        .source = webaudio_js_source,
-        .dest_dir = .{ .custom = "dist" },
-        .dest_sub_path = "webaudio.js",
-    });
+    const install_webaudio_js = b.addInstallFile(webaudio_js_source, "dist/webaudio.js");
     install_webaudio_js.step.dependOn(&make_dist.step);
 
     // Copy all files from "web" directory to "dist" (replaces individual index.html & main.js copies)
