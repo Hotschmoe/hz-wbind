@@ -1,0 +1,10 @@
+.{
+    .name = "hz-wbind-template-project",
+    .version = "0.1.0",
+    .dependencies = .{
+        .@"zig-webaudio-direct" = .{
+            .url = "../webaudio-direct",
+            //    .hash = "1220yourhashhere",
+        },
+    },
+}

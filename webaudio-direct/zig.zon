@@ -1,0 +1,4 @@
+.{
+    .name = "zig-webaudio-direct",
+    .version = "0.1.0",
+}
